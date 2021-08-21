@@ -1,7 +1,9 @@
 // mod core;
 // mod git;
+mod semver;
 
 use git2;
+use anyhow::Result;
 
 fn main() {
     match get_string(std::path::Path::new("./sampleRepo")) {
@@ -17,9 +19,9 @@ fn get_string(path: &std::path::Path) -> Result<String, git2::Error> {
     let tagged_commits = tags.iter()
         .filter_map(std::convert::identity)
         .map(|tag_name| {
-            get_commit(&repo, tag_name)
+            Ok((semver::Version::parse(tag_name)?, get_commit(&repo, tag_name)?))
         })
-        .filter_map(|result| {
+        .filter_map(|result: Result<(semver::Version, git2::Commit<'_>)>| {
             result.ok()
         });
 
@@ -35,7 +37,7 @@ fn get_string(path: &std::path::Path) -> Result<String, git2::Error> {
     Ok(tag_string)
 }
 
-fn get_commit<'a>(repository: &'a git2::Repository, tag_name: &'a str) -> Result<(&'a str, git2::Commit<'a>), git2::Error> {
+fn get_commit<'a>(repository: &'a git2::Repository, tag_name: &'a str) -> Result<git2::Commit<'a>> {
     let object = repository.revparse_single(&format!("refs/tags/{}", tag_name))?;
-    Ok((tag_name, object.peel_to_commit()?))
+    Ok(object.peel_to_commit()?)
 }
