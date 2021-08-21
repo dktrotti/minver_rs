@@ -1,3 +1,6 @@
+mod core;
+mod git;
+
 fn main() {
-    println!("Hello, world!");
+    println!("{}", core::get_version());
 }
