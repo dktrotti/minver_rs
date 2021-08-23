@@ -7,11 +7,11 @@ use std::cmp::Ordering;
 #[derive(Debug)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version {
-    major: u32,
-    minor: u32,
-    patch: u32,
-    prerelease: Option<String>,
-    build_metadata: Option<String>
+    pub major: u32,
+    pub minor: u32,
+    pub patch: u32,
+    pub prerelease: Option<String>,
+    pub build_metadata: Option<String>
 }
 
 impl Version {

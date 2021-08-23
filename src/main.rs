@@ -6,7 +6,7 @@ use git2;
 use anyhow::Result;
 
 fn main() {
-    match get_string(std::path::Path::new("./sampleRepo")) {
+    match get_string(std::path::Path::new("./testRepo")) {
         Ok(s) => println!("{}", s),
         Err(e) => println!("Error: {}", e)
     }
