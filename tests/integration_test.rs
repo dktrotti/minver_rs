@@ -41,7 +41,6 @@ fn test_tagged_head_returns_tag_version() {
         false
     ).unwrap();
 
-    // TODO: Check version
     assert_eq!(
         Version { major: 1, minor: 2, patch: 3, prerelease: None, build_metadata: None },
         minver_rs::get_version(&repo).unwrap());
