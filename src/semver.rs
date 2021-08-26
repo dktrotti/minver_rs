@@ -6,6 +6,7 @@ use std::cmp::Ordering;
 
 #[derive(Debug)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone)]
 pub struct Version {
     pub major: u32,
     pub minor: u32,
@@ -47,6 +48,23 @@ impl Version {
                     (Some(s), Some(o)) => s.cmp(&o)
                 }
             }
+        }
+    }
+
+    pub fn default() -> Version {
+        Version {
+            major: 0,
+            minor: 0,
+            patch: 0,
+            prerelease: Some(String::from("alpha.0")),
+            build_metadata: None,
+        }
+    }
+
+    pub fn with_height(self, height: u32) -> Version {
+        Version {
+            prerelease: Some(format!("{}.{}", self.prerelease.unwrap_or(String::from("alpha")), height)),
+            ..self
         }
     }
 }

@@ -1,4 +1,4 @@
-use git2::{Repository, Signature, Tree, Commit, Oid};
+use git2::{Repository, Signature, Commit, Oid};
 use anyhow::Result;
 use std::path::Path;
 
