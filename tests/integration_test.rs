@@ -114,7 +114,7 @@ fn test_when_branches_diverge_with_multiple_tags_then_higher_tag_is_used() {
 }
 
 #[test]
-fn test_when_branches_merge_with_same_tagged_parent_then_first_parent_height_is_used() {
+fn test_when_branches_merge_with_same_tagged_parent_then_lower_height_is_used() {
     let dir = TempDir::new().unwrap();
     let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
 
@@ -131,7 +131,7 @@ fn test_when_branches_merge_with_same_tagged_parent_then_first_parent_height_is_
     repo_test_helper::merge_commit(&repo, &[&branch_1_commit_2, &branch_2_commit_1], "m").unwrap();
 
     assert_eq!(
-        Version { major: 1, minor: 2, patch: 3, prerelease: Some(String::from("alpha.3")), build_metadata: None },
+        Version { major: 1, minor: 2, patch: 3, prerelease: Some(String::from("alpha.2")), build_metadata: None },
         minver_rs::get_version(&repo).unwrap());
 }
 
@@ -154,7 +154,7 @@ fn test_when_merged_branch_has_lower_version_tag_then_main_branch_version_is_ret
     repo_test_helper::merge_commit(&repo, &[&branch_1_commit_2, &branch_2_commit_1], "m").unwrap();
 
     assert_eq!(
-        Version { major: 1, minor: 3, patch: 0, prerelease: Some(String::from("alpha.3")), build_metadata: None },
+        Version { major: 1, minor: 3, patch: 0, prerelease: Some(String::from("alpha.2")), build_metadata: None },
         minver_rs::get_version(&repo).unwrap());
 }
 
