@@ -16,6 +16,7 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
         .max_by(|(v1, _h1), (v2, _h2)| v1.cmp_precedence(v2))
         .unwrap_or((Version::default(), 0));
 
+    // TODO: Patch version should be incremented
     if height == 0 {
         Ok(version)
     } else {
