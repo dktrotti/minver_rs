@@ -1,7 +1,7 @@
 mod semver;
 
-use git2::{Repository, Commit, ErrorCode};
-use anyhow::{Result, anyhow};
+use git2::{Repository, Commit};
+use anyhow::Result;
 use radix_trie::Trie;
 
 pub use semver::Version;
@@ -11,7 +11,11 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
 
     let head_commit = repository.head()?.peel_to_commit()?;
 
-    let (version, height) = find_latest_version(&tags, &head_commit, 0)?
+    let (version, height) = find_latest_versions(&tags, &head_commit, 0)?
+        .into_iter()
+        .max_by(|(v1, _h1), (v2, _h2)| {
+            v1.cmp_precedence(v2)
+        })
         .unwrap_or((Version::default(), 0));
     
     if height == 0 {
@@ -22,22 +26,26 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
 }
 
 // TODO: Should recursion be used given how large a git graph can be?
-fn find_latest_version(tags: &Trie<String, Version>, commit: &Commit, height: u32) -> Result<Option<(Version, u32)>> {
+fn find_latest_versions(tags: &Trie<String, Version>, commit: &Commit, height: u32) -> Result<Vec<(Version, u32)>> {
     match tags.get(&commit.id().to_string()) {
-        Some(v) => Ok(Some((v.clone(), height))),
+        Some(v) => Ok(vec!((v.clone(), height))),
         None => {
             // TODO: Handle multiple parents
             // (but also account for case where there are multiple merged branches without any tags)
-            match commit.parent(0) {
-                Ok(parent) => find_latest_version(tags, &parent, height + 1),
-                Err(e) => {
-                    // Note: This case is not covered by tests, as this condition is hard to set up
-                    match e.code() {
-                        ErrorCode::NotFound => Ok(None), // Reached initial commit
-                        _ => Err(anyhow!(e)),
-                    }
-                }
+            if commit.parent_count() == 0 {
+                Ok(vec!())
+            } else {
+                let parent_versions: Result<Vec<Vec<(Version, u32)>>> = commit.parents()
+                    .map(|parent| {
+                        find_latest_versions(tags, &parent, height + 1)
+                    })
+                    .collect::<Result<Vec<Vec<(Version, u32)>>>>();
+            
+                parent_versions.map(|vec| {
+                    vec.into_iter().flatten().collect()
+                })
             }
+
         }
     }
 }
