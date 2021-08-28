@@ -1,18 +1,16 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use regex::Regex;
 
-use std::fmt;
 use std::cmp::Ordering;
+use std::fmt;
 
-#[derive(Debug)]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
-#[derive(Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Version {
     pub major: u32,
     pub minor: u32,
     pub patch: u32,
     pub prerelease: Option<String>,
-    pub build_metadata: Option<String>
+    pub build_metadata: Option<String>,
 }
 
 impl Version {
@@ -21,14 +19,21 @@ impl Version {
         let pattern = "^(?P<major>0|[1-9]\\d*)\\.(?P<minor>0|[1-9]\\d*)\\.(?P<patch>0|[1-9]\\d*)(?:-(?P<prerelease>(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$";
 
         let re = Regex::new(pattern).unwrap();
-        let captures = re.captures(version).ok_or(anyhow!("Version is not a valid semver 2.0 version: {}", version))?;
+        let captures = re.captures(version).ok_or(anyhow!(
+            "Version is not a valid semver 2.0 version: {}",
+            version
+        ))?;
 
         Ok(Version {
             major: captures.name("major").unwrap().as_str().parse().unwrap(),
             minor: captures.name("minor").unwrap().as_str().parse().unwrap(),
             patch: captures.name("patch").unwrap().as_str().parse().unwrap(),
-            prerelease: captures.name("prerelease").map(|m| { String::from(m.as_str()) }),
-            build_metadata: captures.name("buildmetadata").map(|m| { String::from(m.as_str()) })
+            prerelease: captures
+                .name("prerelease")
+                .map(|m| String::from(m.as_str())),
+            build_metadata: captures
+                .name("buildmetadata")
+                .map(|m| String::from(m.as_str())),
         })
     }
 
@@ -45,7 +50,7 @@ impl Version {
                     (Some(_), None) => Ordering::Less,
                     (None, Some(_)) => Ordering::Greater,
                     // TODO: This prerelease comparison doesn't quite follow semver 2.0
-                    (Some(s), Some(o)) => s.cmp(&o)
+                    (Some(s), Some(o)) => s.cmp(&o),
                 }
             }
         }
@@ -63,7 +68,11 @@ impl Version {
 
     pub fn with_height(self, height: u32) -> Version {
         Version {
-            prerelease: Some(format!("{}.{}", self.prerelease.unwrap_or(String::from("alpha")), height)),
+            prerelease: Some(format!(
+                "{}.{}",
+                self.prerelease.unwrap_or(String::from("alpha")),
+                height
+            )),
             ..self
         }
     }
@@ -78,12 +87,20 @@ impl Version {
 
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}.{}.{}{}{}",
+        write!(
+            f,
+            "{}.{}.{}{}{}",
             self.major,
             self.minor,
             self.patch,
-            self.prerelease.as_ref().map(|s| { format!("-{}", s) }).unwrap_or_default(),
-            self.build_metadata.as_ref().map(|s| { format!("+{}", s) }).unwrap_or_default(),
+            self.prerelease
+                .as_ref()
+                .map(|s| { format!("-{}", s) })
+                .unwrap_or_default(),
+            self.build_metadata
+                .as_ref()
+                .map(|s| { format!("+{}", s) })
+                .unwrap_or_default(),
         )
     }
 }
@@ -93,17 +110,18 @@ mod test {
     use super::*;
 
     fn create_version(
-            major: u32,
-            minor: u32,
-            patch: u32,
-            prerelease: Option<String>,
-            build_metadata: Option<String>) -> Version {
+        major: u32,
+        minor: u32,
+        patch: u32,
+        prerelease: Option<String>,
+        build_metadata: Option<String>,
+    ) -> Version {
         Version {
             major,
             minor,
             patch,
             prerelease,
-            build_metadata
+            build_metadata,
         }
     }
 
@@ -111,40 +129,50 @@ mod test {
     fn test_parse() {
         assert_eq!(
             create_version(1, 2, 3, None, None),
-            Version::parse("1.2.3").unwrap());
+            Version::parse("1.2.3").unwrap()
+        );
         assert_eq!(
             create_version(1, 2, 3, Some(String::from("alpha.1.1")), None),
-            Version::parse("1.2.3-alpha.1.1").unwrap());
+            Version::parse("1.2.3-alpha.1.1").unwrap()
+        );
         assert_eq!(
             create_version(1, 2, 3, None, Some(String::from("a1b2c3"))),
-            Version::parse("1.2.3+a1b2c3").unwrap());
+            Version::parse("1.2.3+a1b2c3").unwrap()
+        );
         assert_eq!(
-            create_version(1, 2, 3, Some(String::from("alpha.1.1")), Some(String::from("a1b2c3"))),
-            Version::parse("1.2.3-alpha.1.1+a1b2c3").unwrap());
-        
+            create_version(
+                1,
+                2,
+                3,
+                Some(String::from("alpha.1.1")),
+                Some(String::from("a1b2c3"))
+            ),
+            Version::parse("1.2.3-alpha.1.1+a1b2c3").unwrap()
+        );
+
         assert!(Version::parse("v1.2.3").is_err())
     }
 
     #[test]
     fn test_precedence_comparison() {
-        let mut versions = vec!(
+        let mut versions = vec![
             create_version(1, 4, 4, None, None),
             create_version(2, 2, 3, Some(String::from("beta")), None),
             create_version(1, 3, 5, None, None),
             create_version(2, 2, 3, None, None),
             create_version(1, 3, 6, None, None),
             create_version(2, 2, 3, Some(String::from("alpha")), None),
-        );
-        let expected_versions = vec!(
+        ];
+        let expected_versions = vec![
             create_version(1, 3, 5, None, None),
             create_version(1, 3, 6, None, None),
             create_version(1, 4, 4, None, None),
             create_version(2, 2, 3, Some(String::from("alpha")), None),
             create_version(2, 2, 3, Some(String::from("beta")), None),
             create_version(2, 2, 3, None, None),
-        );
+        ];
 
-        versions.sort_by(|v1, v2| { v1.cmp_precedence(&v2) });
+        versions.sort_by(|v1, v2| v1.cmp_precedence(&v2));
 
         assert_eq!(versions, expected_versions);
     }

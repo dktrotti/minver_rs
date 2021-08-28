@@ -2,8 +2,8 @@ mod semver;
 
 use std::collections::HashSet;
 
-use git2::{Repository, Commit, Oid};
 use anyhow::Result;
+use git2::{Commit, Oid, Repository};
 use radix_trie::Trie;
 
 pub use semver::Version;
@@ -13,29 +13,28 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
 
     let (version, height) = find_latest_versions(&tags, &repository)?
         .into_iter()
-        .max_by(|(v1, _h1), (v2, _h2)| {
-            v1.cmp_precedence(v2)
-        })
+        .max_by(|(v1, _h1), (v2, _h2)| v1.cmp_precedence(v2))
         .unwrap_or((Version::default(), 0));
-    
+
     if height == 0 {
         Ok(version)
     } else {
-        Ok(version
-            .with_height(height)
-            .without_metadata())
+        Ok(version.with_height(height).without_metadata())
     }
 }
 
-fn find_latest_versions(tags: &Trie<String, Version>, repository: &Repository) -> Result<Vec<(Version, u32)>> {
+fn find_latest_versions(
+    tags: &Trie<String, Version>,
+    repository: &Repository,
+) -> Result<Vec<(Version, u32)>> {
     let mut current_height: u32 = 0;
-    let mut results: Vec<(Version, u32)> = vec!();
+    let mut results: Vec<(Version, u32)> = vec![];
 
-    let mut checked_commits: HashSet<Oid> = HashSet::new(); 
-    let mut commits_to_check = vec!(repository.head()?.peel_to_commit()?);
+    let mut checked_commits: HashSet<Oid> = HashSet::new();
+    let mut commits_to_check = vec![repository.head()?.peel_to_commit()?];
 
     while !commits_to_check.is_empty() {
-        let mut parent_commits: Vec<Vec<Commit>> = vec!();
+        let mut parent_commits: Vec<Vec<Commit>> = vec![];
         for commit in commits_to_check {
             if checked_commits.contains(&commit.id()) {
                 continue;
@@ -46,9 +45,7 @@ fn find_latest_versions(tags: &Trie<String, Version>, repository: &Repository) -
             // calling Version::clone
             match tags.get(&commit.id().to_string()) {
                 Some(v) => results.push((v.clone(), current_height)),
-                None => {
-                    parent_commits.push(commit.parents().collect())
-                }
+                None => parent_commits.push(commit.parents().collect()),
             }
         }
 
@@ -69,12 +66,13 @@ fn get_tags(repository: &Repository) -> Result<Trie<String, Version>> {
         // TODO: Non UTF-8 tags are ignored, should they be handled?
         .filter_map(std::convert::identity)
         .map(|tag_name| {
-            Ok((Version::parse(tag_name)?, get_tagged_commit(&repository, tag_name)?))
+            Ok((
+                Version::parse(tag_name)?,
+                get_tagged_commit(&repository, tag_name)?,
+            ))
         })
         // TODO: Log version parse failures
-        .filter_map(|result: Result<(Version, Commit)>| {
-            result.ok()
-        })
+        .filter_map(|result: Result<(Version, Commit)>| result.ok())
         .for_each(|(version, commit)| {
             trie.insert(commit.id().to_string(), version);
         });
