@@ -51,6 +51,10 @@ pub fn tag_head(repo: &Repository, tag: &str) -> Result<Oid> {
         false)?)
 }
 
+pub fn checkout_commit(repo: &Repository, commit: &Commit) -> Result<()> {
+    Ok(repo.set_head_detached(commit.id())?)
+}
+
 fn get_head(repo: &Repository) -> Result<Commit> {
     Ok(repo.head()?.peel_to_commit()?)
 }

@@ -59,15 +59,36 @@ fn test_when_repo_access_fails_then_error_is_returned() {
 }
 
 #[test]
-#[ignore]
 fn test_when_lower_tag_is_more_recent_then_older_version_is_returned() {
-    assert!(true, "Not implemented")
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::tag_head(&repo, "2.0.0").unwrap();
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+
+    assert_eq!(
+        Version { major: 1, minor: 2, patch: 3, prerelease: None, build_metadata: None },
+        minver_rs::get_version(&repo).unwrap());
 }
 
 #[test]
-#[ignore]
 fn test_when_old_commit_is_checked_out_then_newer_tags_are_ignored() {
-    assert!(true, "Not implemented")
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+    let intermediate_commit = repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::tag_head(&repo, "1.3.0").unwrap();
+
+    repo_test_helper::checkout_commit(&repo, &intermediate_commit).unwrap();
+
+    assert_eq!(
+        Version { major: 1, minor: 2, patch: 3, prerelease: Some(String::from("alpha.1")), build_metadata: None },
+        minver_rs::get_version(&repo).unwrap());
 }
 
 #[test]
