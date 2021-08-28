@@ -30,8 +30,10 @@ fn find_latest_versions(tags: &Trie<String, Version>, commit: &Commit, height: u
     match tags.get(&commit.id().to_string()) {
         Some(v) => Ok(vec!((v.clone(), height))),
         None => {
-            // TODO: Handle multiple parents
-            // (but also account for case where there are multiple merged branches without any tags)
+            // TODO: account for case where there are multiple merged branches without any tags
+            // This could be done by keeping a list of commits that have already been visited, and
+            // if any of those commits are hit, we can stop because we know that we're doing
+            // redundant evaluation.
             if commit.parent_count() == 0 {
                 Ok(vec!())
             } else {
