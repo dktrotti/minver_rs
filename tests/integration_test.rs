@@ -32,9 +32,30 @@ fn test_height_is_appended_to_version() {
 }
 
 #[test]
-#[ignore]
 fn test_when_no_tags_are_present_in_ancestors_then_default_version_is_returned() {
-    assert!(true, "Not implemented")
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::commit_on_head(&repo).unwrap();
+
+    assert_eq!(
+        Version { major: 0, minor: 0, patch: 0, prerelease: Some(String::from("alpha.0")), build_metadata: None },
+        minver_rs::get_version(&repo).unwrap());
+}
+
+#[test]
+fn test_when_repo_access_fails_then_error_is_returned() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo).unwrap();
+    repo_test_helper::commit_on_head(&repo).unwrap();
+
+    dir.close().unwrap();
+
+    let err = minver_rs::get_version(&repo).err();
+    assert!(err.is_some());
 }
 
 #[test]

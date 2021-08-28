@@ -1,7 +1,7 @@
 mod semver;
 
-use git2::{Repository, Commit};
-use anyhow::Result;
+use git2::{Repository, Commit, ErrorCode};
+use anyhow::{Result, anyhow};
 use radix_trie::Trie;
 
 pub use semver::Version;
@@ -27,10 +27,16 @@ fn find_latest_version(tags: &Trie<String, Version>, commit: &Commit, height: u3
         Some(v) => Ok(Some((v.clone(), height))),
         None => {
             // TODO: Handle multiple parents
+            // (but also account for case where there are multiple merged branches without any tags)
             match commit.parent(0) {
                 Ok(parent) => find_latest_version(tags, &parent, height + 1),
-                // TODO: Differentiate between git error and non-existent parent (i.e. first commit)
-                Err(_) => Ok(None)
+                Err(e) => {
+                    // Note: This case is not covered by tests, as this condition is hard to set up
+                    match e.code() {
+                        ErrorCode::NotFound => Ok(None), // Reached initial commit
+                        _ => Err(anyhow!(e)),
+                    }
+                }
             }
         }
     }
