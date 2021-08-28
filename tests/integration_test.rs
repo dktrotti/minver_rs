@@ -159,13 +159,28 @@ fn test_when_merged_branch_has_lower_version_tag_then_main_branch_version_is_ret
 }
 
 #[test]
-#[ignore]
 fn test_when_build_metadata_is_present_in_tagged_head_then_metadata_is_included_in_version() {
-    assert!(true, "Not implemented")
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3+a1b2c3").unwrap();
+
+    assert_eq!(
+        Version { major: 1, minor: 2, patch: 3, prerelease: None, build_metadata: Some(String::from("a1b2c3")) },
+        minver_rs::get_version(&repo).unwrap());
 }
 
 #[test]
-#[ignore]
 fn test_when_build_metadata_is_present_in_old_tag_then_metadata_is_ignored() {
-    assert!(true, "Not implemented")
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3+a1b2c3").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+
+    assert_eq!(
+        Version { major: 1, minor: 2, patch: 3, prerelease: Some(String::from("alpha.1")), build_metadata: None },
+        minver_rs::get_version(&repo).unwrap());
 }

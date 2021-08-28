@@ -21,7 +21,9 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
     if height == 0 {
         Ok(version)
     } else {
-        Ok(version.with_height(height))
+        Ok(version
+            .with_height(height)
+            .without_metadata())
     }
 }
 

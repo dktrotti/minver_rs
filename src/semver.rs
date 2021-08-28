@@ -67,6 +67,13 @@ impl Version {
             ..self
         }
     }
+
+    pub fn without_metadata(self) -> Version {
+        Version {
+            build_metadata: None,
+            ..self
+        }
+    }
 }
 
 impl fmt::Display for Version {
