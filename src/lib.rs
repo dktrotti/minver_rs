@@ -6,6 +6,7 @@ use anyhow::Result;
 use git2::{Commit, Oid, Repository};
 use radix_trie::Trie;
 
+use semver::Level;
 pub use semver::Version;
 
 pub fn get_version(repository: &Repository) -> Result<Version> {
@@ -16,11 +17,13 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
         .max_by(|(v1, _h1), (v2, _h2)| v1.cmp_precedence(v2))
         .unwrap_or((Version::default(), 0));
 
-    // TODO: Patch version should be incremented
     if height == 0 {
         Ok(version)
     } else {
-        Ok(version.with_height(height).without_metadata())
+        Ok(version
+            .with_height(height)
+            .without_metadata()
+            .with_incremented_level(Level::Patch))
     }
 }
 

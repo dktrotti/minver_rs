@@ -13,6 +13,12 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
+pub enum Level {
+    Major,
+    Minor,
+    Patch,
+}
+
 impl Version {
     pub fn parse(version: &str) -> Result<Version> {
         // Regex taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
@@ -81,6 +87,23 @@ impl Version {
         Version {
             build_metadata: None,
             ..self
+        }
+    }
+
+    pub fn with_incremented_level(self, level: Level) -> Version {
+        match level {
+            Level::Major => Version {
+                major: self.major + 1,
+                ..self
+            },
+            Level::Minor => Version {
+                minor: self.minor + 1,
+                ..self
+            },
+            Level::Patch => Version {
+                patch: self.patch + 1,
+                ..self
+            },
         }
     }
 }
