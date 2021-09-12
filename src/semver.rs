@@ -210,4 +210,33 @@ mod test {
         assert_eq!(Ordering::Equal, metadata2.cmp_precedence(&no_metadata));
         assert_eq!(Ordering::Equal, no_metadata.cmp_precedence(&metadata1));
     }
+
+    #[test]
+    fn test_prerelease_precedence_comparison() {
+        // 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0.
+        let mut versions = vec![
+            create_version(1, 0, 0, Some(String::from("beta.11")), None),
+            create_version(1, 0, 0, Some(String::from("rc.1")), None),
+            create_version(1, 0, 0, Some(String::from("alpha.1")), None),
+            create_version(1, 0, 0, None, None),
+            create_version(1, 0, 0, Some(String::from("beta.2")), None),
+            create_version(1, 0, 0, Some(String::from("alpha.beta")), None),
+            create_version(1, 0, 0, Some(String::from("alpha")), None),
+            create_version(1, 0, 0, Some(String::from("beta")), None),
+        ];
+        let expected_versions = vec![
+            create_version(1, 0, 0, Some(String::from("alpha")), None),
+            create_version(1, 0, 0, Some(String::from("alpha.1")), None),
+            create_version(1, 0, 0, Some(String::from("alpha.beta")), None),
+            create_version(1, 0, 0, Some(String::from("beta")), None),
+            create_version(1, 0, 0, Some(String::from("beta.2")), None),
+            create_version(1, 0, 0, Some(String::from("beta.11")), None),
+            create_version(1, 0, 0, Some(String::from("rc.1")), None),
+            create_version(1, 0, 0, None, None),
+        ];
+
+        versions.sort_by(|v1, v2| v1.cmp_precedence(&v2));
+
+        assert_eq!(versions, expected_versions);
+    }
 }
