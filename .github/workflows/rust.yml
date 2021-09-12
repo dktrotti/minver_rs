@@ -6,6 +6,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  MINVER_UPDATE_VERSION: set
 
 jobs:
   build:
