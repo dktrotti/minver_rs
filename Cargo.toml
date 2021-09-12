@@ -11,6 +11,14 @@ categories = ["command-line-utilities", "development-tools::build-utils"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "minver"
+path = "src/minver_cli.rs"
+
+[[bin]]
+name = "minver_build_util"
+path = "src/minver_build_util.rs"
+
 [dependencies]
 git2 = "0.13"
 anyhow = "1.0"
@@ -20,7 +28,3 @@ toml_edit = "0.2.1"
 
 [dev-dependencies]
 tempfile = "3"
-
-[build-dependencies]
-# Need to use a wildcard to prevent issues with dependency resolution when upgrading
-minver_rs = "*"

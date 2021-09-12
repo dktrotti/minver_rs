@@ -13,9 +13,14 @@ pub fn default_build_action() {
     println!("cargo:rerun-if-env-changed={}", UPDATE_VERSION_VAR);
 
     // Only set the package version if this is the crate being built
-    if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME")
-        && env::var_os(UPDATE_VERSION_VAR).is_some()
-    {
+    // TODO: Could this be evaluated at compile time to make this function a noop if false?
+    if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
+        default_build_action_silent();
+    }
+}
+
+pub fn default_build_action_silent() {
+    if env::var_os(UPDATE_VERSION_VAR).is_some() {
         update_package_version(&env::var_os("CARGO_MANIFEST_DIR").unwrap_or(OsString::from(".")))
             .unwrap()
     }

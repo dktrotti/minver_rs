@@ -214,37 +214,9 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "git2",
- "minver_rs 0.2.1",
  "radix_trie",
  "regex",
  "tempfile",
- "toml_edit",
-]
-
-[[package]]
-name = "minver_rs"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be142ccd999297d9ca4246ee4804e7d4cce3a58797b05da696d1aa77e452a033"
-dependencies = [
- "anyhow",
- "git2",
- "radix_trie",
- "regex",
- "tempfile",
-]
-
-[[package]]
-name = "minver_rs"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b21aaa1e1608e6733525aabba983f30b0d6562169c92ca26b661a09387f54db0"
-dependencies = [
- "anyhow",
- "git2",
- "minver_rs 0.1.1",
- "radix_trie",
- "regex",
  "toml_edit",
 ]
 
