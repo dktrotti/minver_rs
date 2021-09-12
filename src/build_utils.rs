@@ -23,25 +23,37 @@ pub fn default_build_action_silent() {
     if env::var_os(UPDATE_VERSION_VAR).is_some() {
         update_package_version(&env::var_os("CARGO_MANIFEST_DIR").unwrap_or(OsString::from(".")))
             .unwrap()
+    } else {
+        log::info!(
+            "Environment variable {} is not set, no action will be taken",
+            UPDATE_VERSION_VAR
+        );
     }
 }
 
 pub fn update_package_version(manifest_dir: &OsString) -> Result<()> {
     let manifest_path = Path::new(manifest_dir).join("Cargo.toml");
+    log::debug!("Will update manifest file at {:?}", manifest_path);
 
     let mut document: Document = fs::read_to_string(&manifest_path)?.parse::<Document>()?;
+    log::debug!("Successfully read manifest file");
 
     match Repository::open(manifest_dir) {
         Ok(repo) => {
             let version = crate::get_version(&repo)?;
 
             document["package"]["version"] = value(version.to_string());
+            log::debug!("Updated version to {}", version);
 
             Ok(fs::write(
                 &manifest_path,
                 document.to_string_in_original_order(),
             )?)
         }
-        Err(_) => Ok(()), // If we're not being built from our repo, the version doesn't need to be set
+        Err(_) => {
+            // If we're not being built from our repo, the version doesn't need to be set
+            log::info!("Build util run outside of repository, manifest file will not be updated");
+            Ok(())
+        }
     }
 }

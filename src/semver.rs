@@ -21,6 +21,7 @@ pub enum Level {
 
 impl Version {
     pub fn parse(version: &str) -> Result<Version> {
+        log::trace!("Parsing version: {}", version);
         // Regex taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
         let pattern = "^(?P<major>0|[1-9]\\d*)\\.(?P<minor>0|[1-9]\\d*)\\.(?P<patch>0|[1-9]\\d*)(?:-(?P<prerelease>(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$";
 
@@ -44,6 +45,7 @@ impl Version {
     }
 
     pub fn cmp_precedence(&self, other: &Self) -> Ordering {
+        log::trace!("Comparing {} and {}", &self, &other);
         let partial_version = (self.major, self.minor, self.patch);
         let other_partial_version = (other.major, other.minor, other.patch);
 
@@ -60,6 +62,11 @@ impl Version {
     }
 
     fn cmp_prerelease(self_prerelease: &str, other_prerelease: &str) -> Ordering {
+        log::trace!(
+            "Comparing prereleases {} and {}",
+            self_prerelease,
+            other_prerelease
+        );
         let self_parts = self_prerelease.split(".");
         let other_parts = other_prerelease.split(".");
 
@@ -74,15 +81,26 @@ impl Version {
 
             // If one of the parts is greater than the other, return that ordering
             if ordering == Ordering::Equal {
-                continue
+                continue;
             } else {
-                return ordering
+                log::trace!(
+                    "Found difference between {} and {}: {:?}",
+                    self_part,
+                    other_part,
+                    ordering
+                );
+                return ordering;
             }
         }
 
         // If all of the paired parts are equal, the identifier with more parts takes precedence
         let self_count = self_prerelease.split(".").count();
         let other_count = other_prerelease.split(".").count();
+        log::trace!(
+            "All prerelease parts are equal, comparing lengths: {} and {}",
+            self_count,
+            other_count
+        );
         self_count.cmp(&other_count)
     }
 
