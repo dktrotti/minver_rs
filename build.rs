@@ -23,7 +23,7 @@ fn set_package_version() -> Result<()> {
     let manifest_path = get_manifest_path();
     let mut document: Document = fs::read_to_string(&manifest_path)?.parse::<Document>()?;
 
-    let repo = Repository::open(".")?;
+    let repo = Repository::open(&manifest_path)?;
     let version = minver_rs::get_version(&repo)?;
 
     document["package"]["version"] = value(version.to_string());
