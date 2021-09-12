@@ -16,10 +16,13 @@ git2 = "0.13"
 anyhow = "1.0"
 regex = "1.5"
 radix_trie = "0.2"
+toml_edit = "0.2.1"
+
+[dev-dependencies]
 tempfile = "3"
 
 [build-dependencies]
 minver_rs = "0.1.1"
-toml_edit = "0.2.1"
 git2 = "0.13"
 anyhow = "1.0"
+toml_edit = "0.2.1"
