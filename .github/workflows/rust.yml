@@ -24,7 +24,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Update version
-      run: cargo run minver_build_util
+      run: cargo run --bin minver_build_util
     - name: Publish crate
       uses: katyo/publish-crates@v1
       with:
