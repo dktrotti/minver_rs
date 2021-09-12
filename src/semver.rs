@@ -4,7 +4,7 @@ use regex::Regex;
 use std::cmp::Ordering;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Version {
     pub major: u32,
     pub minor: u32,
@@ -50,16 +50,40 @@ impl Version {
         match partial_version.cmp(&other_partial_version) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => {
-                match (self.prerelease.as_ref(), other.prerelease.as_ref()) {
-                    (None, None) => Ordering::Equal,
-                    (Some(_), None) => Ordering::Less,
-                    (None, Some(_)) => Ordering::Greater,
-                    // TODO: This prerelease comparison doesn't quite follow semver 2.0
-                    (Some(s), Some(o)) => s.cmp(&o),
-                }
+            Ordering::Equal => match (self.prerelease.as_ref(), other.prerelease.as_ref()) {
+                (None, None) => Ordering::Equal,
+                (Some(_), None) => Ordering::Less,
+                (None, Some(_)) => Ordering::Greater,
+                (Some(s), Some(o)) => Version::cmp_prerelease(s, o),
+            },
+        }
+    }
+
+    fn cmp_prerelease(self_prerelease: &str, other_prerelease: &str) -> Ordering {
+        let self_parts = self_prerelease.split(".");
+        let other_parts = other_prerelease.split(".");
+
+        for (self_part, other_part) in self_parts.zip(other_parts) {
+            // Numeric identifiers have lower precedence than alphanumeric identifiers
+            let ordering = match (self_part.parse::<u32>(), other_part.parse::<u32>()) {
+                (Ok(s), Ok(o)) => s.cmp(&o),
+                (Ok(_), Err(_)) => Ordering::Less,
+                (Err(_), Ok(_)) => Ordering::Greater,
+                (Err(_), Err(_)) => self_part.cmp(other_part),
+            };
+
+            // If one of the parts is greater than the other, return that ordering
+            if ordering == Ordering::Equal {
+                continue
+            } else {
+                return ordering
             }
         }
+
+        // If all of the paired parts are equal, the identifier with more parts takes precedence
+        let self_count = self_prerelease.split(".").count();
+        let other_count = other_prerelease.split(".").count();
+        self_count.cmp(&other_count)
     }
 
     pub fn default() -> Version {
