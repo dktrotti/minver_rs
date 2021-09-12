@@ -13,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        # Fetch all tags/history
+        fetch-depth: 0
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
     - uses: katyo/publish-crates@v1
       with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
-          args: --allow-dirty
+        registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }} 
+        args: --allow-dirty
