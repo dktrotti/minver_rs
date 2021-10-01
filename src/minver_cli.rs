@@ -2,12 +2,13 @@ use std::env;
 
 use anyhow::Result;
 use git2::Repository;
-use log::Level;
 
+use minver_rs::MinverConfig;
 use minver_rs::Version;
 
 fn main() {
-    if let Err(e) = simple_logger::init_with_level(Level::Warn) {
+    let config = MinverConfig::read_from_env().expect("Failed to parse configuration");
+    if let Err(e) = simple_logger::init_with_level(config.log_level) {
         println!("Failed to initialize log: {}", e);
     }
 
