@@ -14,7 +14,7 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
-#[derive(EnumString, Display)]
+#[derive(EnumString, Display, Debug)]
 pub enum Level {
     Major,
     Minor,
@@ -106,21 +106,21 @@ impl Version {
         self_count.cmp(&other_count)
     }
 
-    pub fn default() -> Version {
+    pub fn default(default_prerelease: &str) -> Version {
         Version {
             major: 0,
             minor: 0,
             patch: 0,
-            prerelease: Some(String::from("alpha.0")),
+            prerelease: Some(format!("{}.0", default_prerelease)),
             build_metadata: None,
         }
     }
 
-    pub fn with_height(self, height: u32) -> Version {
+    pub fn with_height(self, height: u32, default_prerelease: &str) -> Version {
         Version {
             prerelease: Some(format!(
                 "{}.{}",
-                self.prerelease.unwrap_or(String::from("alpha")),
+                self.prerelease.unwrap_or(String::from(default_prerelease)),
                 height
             )),
             ..self

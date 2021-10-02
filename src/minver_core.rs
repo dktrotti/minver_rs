@@ -8,14 +8,15 @@ pub use crate::semver::Version;
 use crate::MinverConfig;
 
 pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Version> {
-    log::debug!("Getting version for {:?}", repository.path());
+    log::info!("Getting version for {:?}", repository.path());
+    log::debug!("Loaded config: {:?}", repository.path());
     let tags = get_tags(repository)?;
 
     let (version, height) = find_latest_versions(&tags, &repository)?
         .into_iter()
         .max_by(|(v1, _h1), (v2, _h2)| v1.cmp_precedence(v2))
         .unwrap_or_else(|| {
-            let v = Version::default();
+            let v = Version::default(&config.prerelease_identifier);
             log::debug!("No tags found, using {}", v);
             (v, 0)
         });
@@ -25,11 +26,12 @@ pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Ver
         version
     } else {
         log::debug!(
-            "Height is non-zero, removing metadata and incrementing version from {}",
+            "Height is non-zero, removing metadata and incrementing {} version from {}",
+            &config.auto_increment_level,
             version
         );
         version
-            .with_height(height)
+            .with_height(height, &config.prerelease_identifier)
             .without_metadata()
             .with_incremented_level(&config.auto_increment_level)
     };

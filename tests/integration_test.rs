@@ -350,3 +350,29 @@ fn test_configured_build_metadata_is_appended_when_tag_metadata_exists() {
         minver_rs::get_version(&repo, &config).unwrap()
     );
 }
+
+#[test]
+fn test_configured_prerelease_identifier_is_used() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+
+    let config = MinverConfig {
+        prerelease_identifier: String::from("beta"),
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 2,
+            patch: 4,
+            prerelease: Some(String::from("beta.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
+    );
+}
