@@ -299,3 +299,54 @@ fn test_configured_version_is_incremented() {
         minver_rs::get_version(&repo, &config).unwrap()
     );
 }
+
+#[test]
+fn test_configured_build_metadata_is_used() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+
+    let config = MinverConfig {
+        build_metadata: Some(String::from("a1b2c3")),
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 2,
+            patch: 4,
+            prerelease: Some(String::from("alpha.1")),
+            build_metadata: Some(String::from("a1b2c3"))
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
+    );
+}
+
+#[test]
+fn test_configured_build_metadata_is_appended_when_tag_metadata_exists() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3+a1b2c3").unwrap();
+
+    let config = MinverConfig {
+        build_metadata: Some(String::from("d4e5f6")),
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 2,
+            patch: 3,
+            prerelease: None,
+            build_metadata: Some(String::from("a1b2c3.d4e5f6"))
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
+    );
+}

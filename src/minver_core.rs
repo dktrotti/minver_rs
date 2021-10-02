@@ -20,18 +20,26 @@ pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Ver
             (v, 0)
         });
 
-    if height == 0 {
+    let version = if height == 0 {
         log::debug!("Height is zero, leaving tag as-is: {}", version);
-        Ok(version)
+        version
     } else {
         log::debug!(
             "Height is non-zero, removing metadata and incrementing version from {}",
             version
         );
-        Ok(version
+        version
             .with_height(height)
             .without_metadata()
-            .with_incremented_level(&config.auto_increment_level))
+            .with_incremented_level(&config.auto_increment_level)
+    };
+
+    match &config.build_metadata {
+        Some(metadata) => {
+            log::debug!("Appending configured metadata: {}", metadata);
+            Ok(version.with_appended_metadata(&metadata))
+        }
+        None => Ok(version),
     }
 }
 

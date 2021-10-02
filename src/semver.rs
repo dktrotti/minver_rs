@@ -134,6 +134,17 @@ impl Version {
         }
     }
 
+    pub fn with_appended_metadata(self, metadata: &String) -> Version {
+        let new_metadata: String = self
+            .build_metadata
+            .map(|m| format!("{}.{}", m, metadata))
+            .unwrap_or(metadata.clone());
+        Version {
+            build_metadata: Some(new_metadata),
+            ..self
+        }
+    }
+
     pub fn with_incremented_level(self, level: &Level) -> Version {
         match level {
             Level::Major => Version {
