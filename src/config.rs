@@ -8,6 +8,7 @@ const DEFAULT_LOG_LEVEL: LogLevel = LogLevel::Warn;
 const DEFAULT_INCREMENT_LEVEL: SemVerLevel = SemVerLevel::Patch;
 const DEFAULT_BUILD_METADATA: Option<String> = None;
 const DEFAULT_PRERELEASE_IDENTIFIER: &str = "alpha";
+const DEFAULT_TAG_PREFIX: &str = "";
 
 #[derive(Debug)]
 pub struct MinverConfig {
@@ -15,6 +16,7 @@ pub struct MinverConfig {
     pub auto_increment_level: SemVerLevel,
     pub build_metadata: Option<String>,
     pub prerelease_identifier: String,
+    pub tag_prefix: String,
 }
 
 impl MinverConfig {
@@ -45,6 +47,9 @@ impl MinverConfig {
                 }
                 Err(_) => String::from(DEFAULT_PRERELEASE_IDENTIFIER),
             },
+            tag_prefix: settings
+                .get_str("tag_prefix")
+                .unwrap_or(String::from(DEFAULT_TAG_PREFIX)),
         })
     }
 
@@ -54,6 +59,7 @@ impl MinverConfig {
             auto_increment_level: DEFAULT_INCREMENT_LEVEL,
             build_metadata: DEFAULT_BUILD_METADATA,
             prerelease_identifier: String::from(DEFAULT_PRERELEASE_IDENTIFIER),
+            tag_prefix: String::from(DEFAULT_TAG_PREFIX),
         }
     }
 }

@@ -397,3 +397,52 @@ fn test_configured_prerelease_identifier_is_used() {
         minver_rs::get_version(&repo, &config).unwrap()
     );
 }
+
+#[test]
+fn test_tags_not_matching_prefix_are_ignored() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "v123.234.345").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+    repo_test_helper::tag_head(&repo, "200.0.0").unwrap();
+
+    let config = MinverConfig {
+        tag_prefix: String::from("v"),
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 123,
+            minor: 234,
+            patch: 346,
+            prerelease: Some(String::from("alpha.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
+    );
+}
+
+#[test]
+fn test_invalid_tags_are_ignored() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+    repo_test_helper::tag_head(&repo, "foobar").unwrap();
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 2,
+            patch: 4,
+            prerelease: Some(String::from("alpha.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
+    );
+}

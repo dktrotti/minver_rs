@@ -10,7 +10,7 @@ use crate::MinverConfig;
 pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Version> {
     log::info!("Getting version for {:?}", repository.path());
     log::debug!("Loaded config: {:?}", repository.path());
-    let tags = get_tags(repository)?;
+    let tags = get_tags(repository, &config.tag_prefix)?;
 
     let (version, height) = find_latest_versions(&tags, &repository)?
         .into_iter()
@@ -83,12 +83,11 @@ fn find_latest_versions(
     Ok(results)
 }
 
-fn get_tags(repository: &Repository) -> Result<Trie<String, Version>> {
+fn get_tags(repository: &Repository, tag_prefix: &str) -> Result<Trie<String, Version>> {
     // Note: A trie may or may not actually be more performant than a map, but I'm using it anyways
     // because it's theoretically more efficient and I don't get to use tries very often :)
     let mut trie = Trie::new();
 
-    // TODO: Use pattern to filter tags
     let tags = repository.tag_names(None)?;
     tags.iter()
         .filter_map(|opt| {
@@ -97,11 +96,19 @@ fn get_tags(repository: &Repository) -> Result<Trie<String, Version>> {
             }
             opt
         })
-        .map(|tag_name| {
-            Ok((
-                Version::parse(tag_name)?,
-                get_tagged_commit(&repository, tag_name)?,
-            ))
+        .filter_map(|tag_name| {
+            let result_opt = tag_name.strip_prefix(tag_prefix).map(|version| {
+                Ok((
+                    Version::parse(version)?,
+                    get_tagged_commit(&repository, tag_name)?,
+                ))
+            });
+
+            if result_opt.is_none() {
+                log::trace!("Ignoring tag that does not match prefix: {}", tag_name);
+            }
+
+            result_opt
         })
         .filter_map(|result: Result<(Version, Commit)>| {
             if result.is_err() {
