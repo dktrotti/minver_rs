@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use regex::Regex;
+use strum_macros::EnumString;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -13,6 +14,7 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
+#[derive(EnumString)]
 pub enum Level {
     Major,
     Minor,
