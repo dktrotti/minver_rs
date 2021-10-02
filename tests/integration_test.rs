@@ -20,7 +20,7 @@ fn test_tagged_head_returns_tag_version() {
             prerelease: None,
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -41,7 +41,7 @@ fn test_height_is_appended_to_version() {
             prerelease: Some(String::from("alpha.1")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -61,7 +61,7 @@ fn test_when_no_tags_are_present_in_ancestors_then_default_version_is_returned()
             prerelease: Some(String::from("alpha.0")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -75,7 +75,7 @@ fn test_when_repo_access_fails_then_error_is_returned() {
 
     dir.close().unwrap();
 
-    let err = minver_rs::get_version(&repo).err();
+    let err = minver_rs::get_version(&repo, &MinverConfig::default()).err();
     assert!(err.is_some());
 }
 
@@ -97,7 +97,7 @@ fn test_when_lower_tag_is_more_recent_then_older_version_is_returned() {
             prerelease: None,
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -122,7 +122,7 @@ fn test_when_old_commit_is_checked_out_then_newer_tags_are_ignored() {
             prerelease: Some(String::from("alpha.1")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -152,7 +152,7 @@ fn test_when_branches_diverge_with_multiple_tags_then_higher_tag_is_used() {
             prerelease: Some(String::from("alpha.2")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -182,7 +182,7 @@ fn test_when_branches_merge_with_same_tagged_parent_then_lower_height_is_used() 
             prerelease: Some(String::from("alpha.2")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -213,7 +213,7 @@ fn test_when_merged_branch_has_lower_version_tag_then_main_branch_version_is_ret
             prerelease: Some(String::from("alpha.2")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -233,7 +233,7 @@ fn test_when_build_metadata_is_present_in_tagged_head_then_metadata_is_included_
             prerelease: None,
             build_metadata: Some(String::from("a1b2c3"))
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
     );
 }
 
@@ -254,6 +254,48 @@ fn test_when_build_metadata_is_present_in_old_tag_then_metadata_is_ignored() {
             prerelease: Some(String::from("alpha.1")),
             build_metadata: None
         },
-        minver_rs::get_version(&repo).unwrap()
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
+    );
+}
+
+#[test]
+fn test_configured_version_is_incremented() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+
+    let config = MinverConfig {
+        auto_increment_level: SemVerLevel::Minor,
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 3,
+            patch: 0,
+            prerelease: Some(String::from("alpha.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
+    );
+
+    let config = MinverConfig {
+        auto_increment_level: SemVerLevel::Major,
+        ..MinverConfig::default()
+    };
+
+    assert_eq!(
+        Version {
+            major: 2,
+            minor: 0,
+            patch: 0,
+            prerelease: Some(String::from("alpha.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &config).unwrap()
     );
 }

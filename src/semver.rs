@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use regex::Regex;
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumString};
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -14,7 +14,7 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
-#[derive(EnumString)]
+#[derive(EnumString, Display)]
 pub enum Level {
     Major,
     Minor,
@@ -134,14 +134,17 @@ impl Version {
         }
     }
 
-    pub fn with_incremented_level(self, level: Level) -> Version {
+    pub fn with_incremented_level(self, level: &Level) -> Version {
         match level {
             Level::Major => Version {
                 major: self.major + 1,
+                minor: 0,
+                patch: 0,
                 ..self
             },
             Level::Minor => Version {
                 minor: self.minor + 1,
+                patch: 0,
                 ..self
             },
             Level::Patch => Version {

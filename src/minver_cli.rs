@@ -12,14 +12,14 @@ fn main() {
         println!("Failed to initialize log: {}", e);
     }
 
-    match get_version() {
+    match get_version(&config) {
         Ok(v) => println!("{}", v),
         Err(e) => println!("Error: {}", e),
     }
 }
 
-fn get_version() -> Result<Version> {
+fn get_version(config: &MinverConfig) -> Result<Version> {
     let dir = env::current_dir()?;
     let repo = Repository::open(dir.as_path())?;
-    minver_rs::get_version(&repo)
+    minver_rs::get_version(&repo, &config)
 }

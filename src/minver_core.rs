@@ -4,10 +4,10 @@ use anyhow::Result;
 use git2::{Commit, Oid, Repository};
 use radix_trie::Trie;
 
-use crate::semver::Level;
 pub use crate::semver::Version;
+use crate::MinverConfig;
 
-pub fn get_version(repository: &Repository) -> Result<Version> {
+pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Version> {
     log::debug!("Getting version for {:?}", repository.path());
     let tags = get_tags(repository)?;
 
@@ -31,7 +31,7 @@ pub fn get_version(repository: &Repository) -> Result<Version> {
         Ok(version
             .with_height(height)
             .without_metadata()
-            .with_incremented_level(Level::Patch))
+            .with_incremented_level(&config.auto_increment_level))
     }
 }
 
