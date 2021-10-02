@@ -218,6 +218,27 @@ fn test_when_merged_branch_has_lower_version_tag_then_main_branch_version_is_ret
 }
 
 #[test]
+fn test_when_prerelease_identifier_is_present_in_tag_then_that_identifier_is_used_in_version() {
+    let dir = TempDir::new().unwrap();
+    let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
+
+    repo_test_helper::commit_on_head(&repo, "m1").unwrap();
+    repo_test_helper::tag_head(&repo, "1.2.3-beta").unwrap();
+    repo_test_helper::commit_on_head(&repo, "m2").unwrap();
+
+    assert_eq!(
+        Version {
+            major: 1,
+            minor: 2,
+            patch: 4,
+            prerelease: Some(String::from("beta.1")),
+            build_metadata: None
+        },
+        minver_rs::get_version(&repo, &MinverConfig::default()).unwrap()
+    );
+}
+
+#[test]
 fn test_when_build_metadata_is_present_in_tagged_head_then_metadata_is_included_in_version() {
     let dir = TempDir::new().unwrap();
     let repo = repo_test_helper::create_temp_repo(dir.path()).unwrap();
