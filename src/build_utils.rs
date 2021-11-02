@@ -18,6 +18,8 @@ pub const UPDATE_VERSION_VAR: &str = "MINVER_UPDATE_VERSION";
 /// called in `build.rs`.
 /// 
 /// ```no_run
+/// use minver_rs::build_utils;
+/// 
 /// fn main() {
 ///     if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
 ///         build_utils::default_build_action();
