@@ -16,6 +16,14 @@ pub const UPDATE_VERSION_VAR: &str = "MINVER_UPDATE_VERSION";
 /// 
 /// This function prints `cargo:rerun-if` output to ensure that this build action will be run when
 /// called in `build.rs`.
+/// 
+/// ```
+/// fn main() {
+///     if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
+///         default_build_action();
+///     }
+/// }
+/// ```
 pub fn default_build_action() {
     println!("cargo:rerun-if-changed=.git/refs/tags/");
     println!("cargo:rerun-if-env-changed={}", UPDATE_VERSION_VAR);
@@ -25,12 +33,7 @@ pub fn default_build_action() {
         println!("Failed to initialize log: {}", e);
     }
 
-    // Only set the package version if this is the crate being built
-    // TODO: Could this be evaluated at compile time to make this function a noop if false?
-    // TODO: Does this actually work in consuming crates?
-    if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
-        default_build_action_silent(&config);
-    }
+    default_build_action_silent(&config);
 }
 
 /// Updates the version in `Cargo.toml` without printing any `cargo:rerun-if` output.
