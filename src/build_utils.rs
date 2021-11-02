@@ -17,10 +17,10 @@ pub const UPDATE_VERSION_VAR: &str = "MINVER_UPDATE_VERSION";
 /// This function prints `cargo:rerun-if` output to ensure that this build action will be run when
 /// called in `build.rs`.
 /// 
-/// ```
+/// ```no_run
 /// fn main() {
 ///     if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
-///         default_build_action();
+///         build_utils::default_build_action();
 ///     }
 /// }
 /// ```
