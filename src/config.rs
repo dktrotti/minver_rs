@@ -12,14 +12,22 @@ const DEFAULT_TAG_PREFIX: &str = "";
 
 #[derive(Debug)]
 pub struct MinverConfig {
+    /// The verbosity of the output (defaults to `WARN`).
     pub log_level: LogLevel,
+    /// The semver level that should be incremented on a prerelease version (defaults to `PATCH`).
     pub auto_increment_level: SemVerLevel,
+    /// The build metadata that will be appended to the generated version (defaults to `None`).
     pub build_metadata: Option<String>,
+    /// The identifier that will be used for prerelease versions (defaults to `alpha`).
     pub prerelease_identifier: String,
+    /// Custom prefix that comes before the version in tag names (defaults to an empty string).
     pub tag_prefix: String,
 }
 
 impl MinverConfig {
+    /// Reads the configuration from environment variables. The environment variables have the
+    /// same name as the associate fields with `MINVER_` prepended. If an environment variable is
+    /// not set, the default value will be used.
     pub fn read_from_env() -> Result<MinverConfig> {
         let mut settings = Config::default();
         settings.merge(Environment::with_prefix("MINVER"))?;
@@ -53,6 +61,7 @@ impl MinverConfig {
         })
     }
 
+    /// Creates a `MinverConfig` with default values.
     pub fn default() -> MinverConfig {
         MinverConfig {
             log_level: DEFAULT_LOG_LEVEL,

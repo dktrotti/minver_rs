@@ -7,6 +7,7 @@ use radix_trie::Trie;
 pub use crate::semver::Version;
 use crate::MinverConfig;
 
+/// Calculates the version for the given repository and configuration.
 pub fn get_version(repository: &Repository, config: &MinverConfig) -> Result<Version> {
     log::info!("Getting version for {:?}", repository.path());
     log::debug!("Loaded config: {:?}", repository.path());

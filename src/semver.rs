@@ -5,12 +5,15 @@ use strum_macros::{Display, EnumString};
 use std::cmp::Ordering;
 use std::fmt;
 
+/// Represents a semver 2.0 version.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Version {
     pub major: u32,
     pub minor: u32,
     pub patch: u32,
+    /// The prerelease identifier without the `-`.
     pub prerelease: Option<String>,
+    /// The build metadata with the `+`.
     pub build_metadata: Option<String>,
 }
 
@@ -46,6 +49,7 @@ impl Version {
         })
     }
 
+    /// Compares the precedence of two versions according to semver 2.0 rules.
     pub fn cmp_precedence(&self, other: &Self) -> Ordering {
         log::trace!("Comparing {} and {}", &self, &other);
         let partial_version = (self.major, self.minor, self.patch);

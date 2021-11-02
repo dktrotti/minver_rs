@@ -8,8 +8,14 @@ use toml_edit::{value, Document};
 
 use crate::MinverConfig;
 
+/// Environment variable that determines if minver_rs will update the crate version. If this
+/// variable is not set, then no action will be taken.
 pub const UPDATE_VERSION_VAR: &str = "MINVER_UPDATE_VERSION";
 
+/// Updates the version in `Cargo.toml`.
+/// 
+/// This function prints `cargo:rerun-if` output to ensure that this build action will be run when
+/// called in `build.rs`.
 pub fn default_build_action() {
     println!("cargo:rerun-if-changed=.git/refs/tags/");
     println!("cargo:rerun-if-env-changed={}", UPDATE_VERSION_VAR);
@@ -21,11 +27,13 @@ pub fn default_build_action() {
 
     // Only set the package version if this is the crate being built
     // TODO: Could this be evaluated at compile time to make this function a noop if false?
+    // TODO: Does this actually work in consuming crates?
     if env!("CARGO_PKG_NAME") != env!("CARGO_CRATE_NAME") {
         default_build_action_silent(&config);
     }
 }
 
+/// Updates the version in `Cargo.toml` without printing any `cargo:rerun-if` output.
 pub fn default_build_action_silent(config: &MinverConfig) {
     if env::var_os(UPDATE_VERSION_VAR).is_some() {
         update_package_version(
@@ -41,6 +49,7 @@ pub fn default_build_action_silent(config: &MinverConfig) {
     }
 }
 
+/// Updates the version in `Cargo.toml`.
 pub fn update_package_version(manifest_dir: &OsString, config: &MinverConfig) -> Result<()> {
     let manifest_path = Path::new(manifest_dir).join("Cargo.toml");
     log::debug!("Will update manifest file at {:?}", manifest_path);
